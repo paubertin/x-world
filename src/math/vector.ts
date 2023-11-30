@@ -44,6 +44,31 @@ export class Vector {
   public static sub (v: Vector, w: Vector) {
     return new Vector(v.x - w.x, v.y - w.y);
   }
+
+  public scale (s: number) {
+    return Vector.scale(this, s);
+  }
+
+  public get length () {
+    return Math.hypot(this.x, this.y);
+  }
+
+  public dot (other: Vector) {
+    return this._x * other._x + this._y * other._y;
+  }
+
+  public normalize () {
+    return this.scale(1 / this.length);
+  }
+
+  public static normalize (v: Vector) {
+    return this.scale(v, 1 / v.length);
+  }
+
+  public get perp () {
+    return new Vector(this._y, -this.x);
+  }
+
   public static scale (v: Vector, s: number) {
     return new Vector(v.x * s, v.y * s);
   }

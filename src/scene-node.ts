@@ -60,7 +60,7 @@ export class SceneNode {
   }
 
   public update (step: TimeStep) {
-    this._children.forEach((child) => child.update(step));
+    this._children.filter((child) => !child._disabled).forEach((child) => child.update(step));
   }
 
   public render () {

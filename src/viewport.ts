@@ -81,9 +81,13 @@ export class Viewport {
     this._center = new Vector(this.width / 2, this.height / 2);
     this._offset = Vector.scale(this._center, -1);
     this._minZoom = options.minZoom ?? 1;
-    this._maxZoom = options.maxZoom ?? 5;
+    this._maxZoom = options.maxZoom ?? 8;
     this.load();
     this._addEventListeners();
+  }
+
+  public get viewPoint () {
+    return Vector.scale(this.getOffset(), -1);
   }
 
   public get canvas () {

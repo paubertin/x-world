@@ -11,12 +11,12 @@ export class Envelope extends SceneNode {
   private _width: number;
   private _roundness: number;
 
-  public constructor (skeleton: Segment, width: number, roundness: number = 1) {
+  public constructor (skeleton: Segment, width: number, roundness: number = 1, opts?: { stroke?: string; lineWidth?: number; fill?: string }) {
     super('envelope');
     this._skeleton = skeleton;
     this._width = width;
     this._roundness = roundness;
-    this._polygon = this._generatePolygon();
+    this._polygon = this._generatePolygon(opts);
     this.addChild(this._polygon);
   }
 
@@ -24,7 +24,7 @@ export class Envelope extends SceneNode {
     return this._polygon;
   }
 
-  private _generatePolygon () {
+  private _generatePolygon (opts?: { stroke?: string; lineWidth?: number; fill?: string }) {
     const { from, to } = this._skeleton;
     const radius = this._width * 0.5;
     const alpha = Vector.sub(from.position, to.position).heading;
@@ -41,7 +41,7 @@ export class Envelope extends SceneNode {
       points.push(Vector.translate(to.position, Math.PI + i, radius));
     }
 
-    return new Polygon(points.map((p) => new Point(p)), { fill: '#BBB', stroke: '#BBB', lineWidth: 15 });
+    return new Polygon(points.map((p) => new Point(p)), { fill: opts?.fill ?? '#BBB', stroke: opts?.stroke ?? '#BBB', lineWidth: opts?.lineWidth ?? 15 });
   }
 
   public get path () {

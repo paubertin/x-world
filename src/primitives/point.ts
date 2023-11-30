@@ -47,6 +47,9 @@ export class Point extends SceneNode {
   public fill (v: boolean = true) {
     this._filled = v;
   }
+  public distanceTo (position: Vector) {
+    return this.position.distanceTo(position);
+  }
 
   public override render () {
     this.context.save();

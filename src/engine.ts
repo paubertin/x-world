@@ -35,8 +35,8 @@ export class Engine {
         if (!this.instance) reject('Engine has not been created');
         this.instance._viewport = new Viewport({
           canvasId: 'canvas',
-          width: 600,
-          height: 600,
+          width: 800,
+          height: 800,
         });  
         const ctx = this.instance.canvas.getContext('2d');
         if (!ctx) throw new Error('no context');

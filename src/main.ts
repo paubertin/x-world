@@ -10,7 +10,7 @@ async function main () {
   
   const scene = new Scene(engine);
   const graphEditor = new GraphEditor();
-  const world = new World(graphEditor.graph);
+  const world = new World({ graph: graphEditor.graph });
   scene
   .add(world)
     .add(graphEditor)

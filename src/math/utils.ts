@@ -20,6 +20,15 @@ export function clamp (value: number, min: number, max: number) {
   return value;
 }
 
-export function lerp(a: number, b: number, t: number) {
-   return a + (b - a) * t;
+export function lerp(a: Vector, b: Vector, t: number): Vector;
+export function lerp(a: number, b: number, t: number): number
+export function lerp(a: number | Vector, b: number | Vector, t: number) {
+  if (a instanceof Vector) {
+    return new Vector(lerp(a.x, (b as Vector).x, t), lerp(a.y, (b as Vector).y, t));
+  }
+  else {
+    return a + ((b as number) - a) * t;
+  }
 }
+
+export const EPSILON = 1e-6;

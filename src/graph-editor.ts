@@ -116,4 +116,11 @@ export class GraphEditor extends SceneNode {
     const graph = graphInfo ? Graph.load(graphInfo) : new Graph();
     return graph;
   }
+
+  public override render(): void {
+    this.context.save();
+    // this.context.globalAlpha = 0.3;
+    super.render();
+    this.context.restore();
+  }
 }

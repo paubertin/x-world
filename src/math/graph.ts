@@ -25,6 +25,10 @@ export class Graph extends SceneNode {
     };
   }
 
+  public get hash () {
+    return JSON.stringify(this);
+  }
+
   public addPoint(p: Point | Vector | null) {
     if (!p) return;
     const point = p instanceof Point ? p : new Point(p.x, p.y);

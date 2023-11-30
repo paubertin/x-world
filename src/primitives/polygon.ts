@@ -12,12 +12,19 @@ export class Polygon extends SceneNode {
   private _stroke: string;
   private _fill: string;
 
-  public constructor (points: Point[], opts?: { stroke?: string; lineWidth?: number; fill?: string }) {
+  public constructor (polygon: Polygon, opts?: { stroke?: string; lineWidth?: number; fill?: string }) 
+  public constructor (points: Vector[], opts?: { stroke?: string; lineWidth?: number; fill?: string }) 
+  public constructor (points: Point[], opts?: { stroke?: string; lineWidth?: number; fill?: string }) 
+  public constructor (points: (Point | Vector)[] | Polygon, opts?: { stroke?: string; lineWidth?: number; fill?: string }) {
     super('polygon');
-    this._points = [...points];
-    for (let i = 1; i <= points.length; ++i) {
+    this._points = Array.isArray(points)
+      ? points[0] instanceof Point
+        ? [...points] as Point[]
+        : [...points.map((v) => new Point(v as Vector))]
+      : [...points.points];
+    for (let i = 1; i <= this._points.length; ++i) {
       this._segments.push(
-        new Segment(points[i-1], points[i % points.length]),
+        new Segment(this._points[i-1], this._points[i % this._points.length]),
       );
     }
     this._stroke = opts?.stroke ?? 'blue';
@@ -37,6 +44,21 @@ export class Polygon extends SceneNode {
     return this._fill;
   }
 
+  public get points () {
+    return this._points;
+  }
+
+  public distanceTo (other: Polygon): number;
+  public distanceTo (position: Vector): number;
+  public distanceTo (position: Vector | Polygon) {
+    if (position instanceof Vector) {
+      return Math.min(...this._segments.map((s) => s.distanceTo(position)));
+    }
+    else {
+      return Math.min(...this.points.map((p) => position.distanceTo(p.position)));
+    }
+  }
+
   public override render () {
     this.context.save();
     this.context.beginPath();
@@ -51,6 +73,17 @@ export class Polygon extends SceneNode {
     this.context.fill();
     this.context.stroke();
     this.context.restore();
+  }
+
+  public intersects (other: Polygon) {
+    for (let seg of this._segments) {
+      for (let seg2 of other._segments) {
+        if (Segment.getIntersection(seg, seg2)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public contains (segment: Segment): boolean;
