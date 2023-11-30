@@ -2,6 +2,7 @@ import { Debugger } from './debugger';
 import { Timer, TimeStep } from './time';
 import { Scene } from './scene';
 import { Inputs } from './input';
+import { Viewport } from './viewport';
 
 
 interface LoopParameters {
@@ -13,8 +14,8 @@ interface LoopParameters {
 }
 
 export class Engine {
-  private _canvas!: HTMLCanvasElement;
   private _context!: CanvasRenderingContext2D;
+  private _viewport!: Viewport;
   private static instance: Engine;
 
   private gameTime: number = 0;
@@ -32,16 +33,15 @@ export class Engine {
     return new Promise((resolve, reject) => {
       window.addEventListener('load', () => {
         if (!this.instance) reject('Engine has not been created');
-        const canvas = document.getElementById('canvas');
-        if (!canvas) throw new Error('no canvas');
-        this.instance._canvas = canvas as HTMLCanvasElement;
-        this.instance._canvas.width = 600;
-        this.instance._canvas.height = 600;
-  
+        this.instance._viewport = new Viewport({
+          canvasId: 'canvas',
+          width: 600,
+          height: 600,
+        });  
         const ctx = this.instance.canvas.getContext('2d');
         if (!ctx) throw new Error('no context');
         this.instance._context = ctx;
-        Inputs.initialize(this.instance._canvas);
+        Inputs.initialize(this.instance.canvas);
         resolve(this.instance!);
       });
     });
@@ -58,7 +58,6 @@ export class Engine {
     else {
       this.activeScene = undefined;
     }
-    console.log('active scene', this.activeScene);
   }
 
   public static create () {
@@ -73,7 +72,7 @@ export class Engine {
   }
 
   public get canvas () {
-    return this._canvas;
+    return this._viewport.canvas;
   }
 
   public static get context () {
@@ -82,6 +81,10 @@ export class Engine {
 
   public static get canvas () {
     return this.instance.canvas;
+  }
+
+  public static get viewport () {
+    return this.instance._viewport;
   }
 
   public static run () {
@@ -133,8 +136,7 @@ export class Engine {
   }
 
   private beginFrame () {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    // this.canvas!.height = window.innerHeight;
+    this._viewport.clear(this._context);
   }
 
   private endFrame () {}

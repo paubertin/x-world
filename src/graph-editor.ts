@@ -1,6 +1,8 @@
+import { Engine } from "./engine";
 import { Inputs } from "./input";
 import { Graph } from "./math/graph";
 import { clamp, getNearestPoint } from "./math/utils";
+import { Vector } from "./math/vector";
 import { Point } from "./primitives/point";
 import { Segment } from "./primitives/segment";
 import { SceneNode } from "./scene-node";
@@ -10,12 +12,13 @@ export class GraphEditor extends SceneNode {
   private _selected: Point | null = null;
   private _hovered: Point | null = null;
   private _dragging: boolean = false;
-  private _mousePosition!: Point;
+  private _mousePosition!: Vector;
   private _tmpSegment: Segment = new Segment(new Point(0, 0), new Point(0, 0), { color: '#000000b8', lineDash: [3, 3] });
 
-  public constructor(graph?: Graph) {
+  public constructor() {
     super('graph-editor');
-    this.addChild(graph ?? new Graph());
+    const graph = this._load();
+    this.addChild(graph);
     this.graph.addChild(this._tmpSegment);
 
     this._addEventListeners();
@@ -46,17 +49,12 @@ export class GraphEditor extends SceneNode {
     return this._hovered;
   }
 
-  private _select(point: Point | null = null) {
-    // this.removeChild(this._tmpSegment);
-    if (!point) return;
+  private _select(p: Point | null = null) {
+    if (!p) return;
     if (this._selected) {
-
-      // this.graph.removeSegment(this._tmpSegment);
-      const added = this.graph.tryAddSegment(new Segment(this._selected, point));
-      // console.log('added segment', added);
+      this.graph.tryAddSegment(new Segment(this._selected, p));
     }
-    this.selected = point;
-
+    this.selected = p;
   }
 
   private _addEventListeners() {
@@ -64,7 +62,6 @@ export class GraphEditor extends SceneNode {
     Inputs.on('mousemove', this._handleMouseMove.bind(this));
     Inputs.on('mouseup', () => this._dragging = false);
     Inputs.on('contextmenu', (evt) => evt.preventDefault());
-    Inputs.on('keydown', (evt) => console.log(evt));
   }
 
   private _handleMouseDown (evt: MouseEvent) {
@@ -83,17 +80,16 @@ export class GraphEditor extends SceneNode {
         this._dragging = true;
         return;
       }
-      this.graph.addPoint(this._mousePosition);
-      this._select(this._mousePosition);
+      const added = this.graph.addPoint(this._mousePosition) ?? null;
+      this._select(added);
     }
   }
 
   private _handleMouseMove (evt: MouseEvent) {
-    this._mousePosition = new Point(evt.offsetX, evt.offsetY);
+    this._mousePosition = Engine.viewport.getMouse(evt, true);
     this.hovered = getNearestPoint(this._mousePosition, this.graph.points, 10);
     if (this._dragging && this._selected) {
-      this._selected.x = this._mousePosition.x;
-      this._selected.y = this._mousePosition.y;
+      this._selected.position = this._mousePosition;
     }
     if (this._selected) {
       const intent = this._hovered ?? this._mousePosition;
@@ -102,8 +98,22 @@ export class GraphEditor extends SceneNode {
     }
     this._tmpSegment.enable(this._selected !== null);
   }
+  
+  public clear () {
+    this.graph.clear();
+    this._selected = null;
+    this._hovered = null;
+    this._dragging = false;
+  }
 
-  public override render(): void {
-    super.render();
+  public save () {
+    localStorage.setItem('graph', JSON.stringify(this.graph.toJSON()));
+  }
+
+  private _load () {
+    const graphString = localStorage.getItem('graph');
+    const graphInfo = graphString ? JSON.parse(graphString) : null;
+    const graph = graphInfo ? Graph.load(graphInfo) : new Graph();
+    return graph;
   }
 }

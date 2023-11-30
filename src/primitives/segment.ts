@@ -1,10 +1,12 @@
+import { lerp } from "../math/utils";
+import { Vector } from "../math/vector";
 import { SceneNode } from "../scene-node";
 import { Point } from "./point";
 
 export class Segment extends SceneNode {
 
-  public from: Point;
-  public to: Point;
+  private _from: Point;
+  private _to: Point;
 
   public width: number;
   public color: string;
@@ -12,8 +14,8 @@ export class Segment extends SceneNode {
 
   public constructor (p1: Point, p2: Point, opts?: { width?: number; color?: string; lineDash?: number[] }) {
     super('segment');
-    this.from = p1;
-    this.to = p2;
+    this._from = p1;
+    this._to = p2;
     this.width = opts?.width ?? 2;
     this.color = opts?.color ?? 'black';
     this.lineDash = opts?.lineDash ?? [];
@@ -24,18 +26,61 @@ export class Segment extends SceneNode {
     this.context.beginPath();
     this.context.lineWidth = this.width;
     this.context.strokeStyle = this.color;
-    this.context.moveTo(this.from.x, this.from.y);
-    this.context.lineTo(this.to.x, this.to.y);
+    this.context.moveTo(this._from.x, this._from.y);
+    this.context.lineTo(this._to.x, this._to.y);
     this.context.setLineDash(this.lineDash);
     this.context.stroke();
     this.context.restore();
   }
 
   public equals (other: Segment) {
-    return this.has(other.from) && this.has(other.to);
+    return this.has(other._from) && this.has(other._to);
   }
 
   public has (point: Point) {
-    return this.from.equals(point) || this.to.equals(point);
+    return this._from.equals(point) || this._to.equals(point);
+  }
+
+  public get from (): Point {
+    return this._from;
+  }
+
+  public set from (p: Point | Vector) {
+    const point = p instanceof Point ? p : new Point(p.x, p.y);
+    this._from = point;
+  }
+
+  public get to (): Point {
+    return this._to;
+  }
+
+  public set to (p: Point | Vector) {
+    const point = p instanceof Point ? p : new Point(p.x, p.y);
+    this._to = point;
+  }
+
+  public static getIntersection (a: Segment, b: Segment) {
+    const A = a.from.position;
+    const B = a.to.position;
+    const C = b.from.position;
+    const D = b.to.position;
+    const tTop = (D.x - C.x) * (A.y - C.y) - (D.y - C.y) * (A.x - C.x);
+    const uTop = (C.y - A.y) * (A.x - B.x) - (C.x - A.x) * (A.y - B.y);
+    const bottom = (D.y - C.y) * (B.x - A.x) - (D.x - C.x) * (B.y - A.y);
+ 
+    if (bottom != 0) {
+       const t = tTop / bottom;
+       const u = uTop / bottom;
+       if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+          return {
+             x: lerp(A.x, B.x, t),
+             y: lerp(A.y, B.y, t),
+             offset: t,
+          };
+       }
+    }
+ 
+    return null;
+
   }
 }

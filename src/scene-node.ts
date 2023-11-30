@@ -35,6 +35,12 @@ export class SceneNode {
     return this;
   }
 
+  public removeChildren () {
+    while (this._children.length) {
+      this.removeChild(this._children[0]);
+    }
+  }
+
   public removeChild (node: SceneNode | null) {
     if (!node) return;
     this._children.splice(this._children.indexOf(node), 1);
@@ -71,6 +77,10 @@ export class SceneNode {
 
   public disable (value: boolean = true) {
     this._disabled = value;
+  }
+
+  public get disabled () {
+    return this._disabled;
   }
 
   public enable (value: boolean = true) {
