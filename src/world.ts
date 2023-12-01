@@ -111,8 +111,8 @@ export class World extends SceneNode {
   }
 
   public override update (step: TimeStep) {
-    if (this._options.graph.hash !== this._graphHash) {
-      this._graphHash = this._options.graph.hash;
+    if (this.graph.hash !== this._graphHash) {
+      this._graphHash = this.graph.hash;
       this.removeChildren();
       this._generate();
     }
