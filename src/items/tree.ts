@@ -10,14 +10,16 @@ export class Tree extends SceneNode {
 
   private _point: Point;
   private _levels: Polygon[];
-  private _heightCoefficient: number;
+  private _height: number;
   private _numLevels: number;
   public base: Polygon;
 
-  public constructor (position: Vector, size: number, heightCoefficient = 0.15, numLevels = 7) {
+  private _noise: number[][] = [];
+
+  public constructor (position: Vector, size: number, height = 200, numLevels = 7) {
     super('tree');
     this._point = new Point(position, { size, color: 'green' });
-    this._heightCoefficient = heightCoefficient;
+    this._height = height;
     this._numLevels = numLevels;
     const top = this._getTopPoint();
     
@@ -40,18 +42,18 @@ export class Tree extends SceneNode {
   }
 
   private _getTopPoint () {
-    const diff = Vector.sub(this.position, Engine.viewport.viewPoint);
-    return Vector.add(this.position, diff.scale(this._heightCoefficient));
+    return Engine.viewport.getFake3dPoint(this.position, this._height);
   }
 
   private _generateLevels (top: Vector) {
     const levels: Polygon[] = [];
     for (let level = 0; level < this._numLevels; level++) {
+      this._noise.push([]);
       const t = level / (this._numLevels - 1);
       const point = lerp(this.position, top, t);
       const size = lerp(this.size, 10, t);
       const color = `rgb(30,${lerp(50, 200, t)}, 70)`;
-      const polygon = this._generateLevel(point, size, color);
+      const polygon = this._generateLevel(point, size, color, level);
       levels.push(polygon);
     }
     return levels;
@@ -61,13 +63,8 @@ export class Tree extends SceneNode {
     for (let level = 0; level < this._numLevels; level++) {
       const t = level / (this._numLevels - 1);
       const point = lerp(this.position, top, t);
-      const size = lerp(this.size, 10, t);
-      
-      const radius = size * 0.5;
       for (let a = 0, i = 0; a < Math.PI * 2; a += Math.PI / 16, i++) {
-        const rand = Math.cos(((a + this.center.x) * this.size) % 17) ** 2;
-        const noisyRadius = radius * lerp(0.75, 1, rand);
-        const vec = Vector.translate(point, a, noisyRadius);
+        const vec = Vector.translate(point, a, this._noise[level][i]);
         this._levels[level].points[i].position = vec;
       }
     }
@@ -79,12 +76,13 @@ export class Tree extends SceneNode {
     super.update(step);
   }
 
-  private _generateLevel (point: Vector, size: number, color: string) {
+  private _generateLevel (point: Vector, size: number, color: string, level: number) {
     const points: Vector[] = [];
     const radius = size * 0.5;
     for (let a = 0; a < Math.PI * 2; a += Math.PI / 16) {
-      const rand = Math.cos(((a + this.center.x) * this.size) % 17) ** 2;
-      const noisyRadius = radius * lerp(0.75, 1, rand);
+      const rand = Math.random(); // Math.cos(((a + this.center.x) * this.size) % 17) ** 2;
+      const noisyRadius = radius * lerp(0.6, 1, rand);
+      this._noise[level].push(noisyRadius);
       points.push(Vector.translate(point, a, noisyRadius));
     }
     return new Polygon(points, { fill: color, stroke: 'rgba(0,0,0,0)' })

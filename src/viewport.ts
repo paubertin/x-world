@@ -188,4 +188,11 @@ export class Viewport {
       this._offset.y = infos.offset.y;
     }
   }
+
+  public getFake3dPoint (point: Vector, height: number) {
+    const dir = Vector.sub(point, this.viewPoint).normalize();
+    const distance = point.distanceTo(this.viewPoint);
+    const scaler = Math.atan(distance / 300) / (Math.PI / 2);
+    return Vector.add(point, dir.scale(height * scaler));
+  }
 }

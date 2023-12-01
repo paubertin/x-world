@@ -8,13 +8,13 @@ export class Building extends SceneNode {
   public base: Polygon;
   private _ceiling: Polygon;
   private _sides: Polygon[];
-  private _heightCoefficient: number;
+  private _height: number;
 
-  public constructor (basePolygon: Polygon, heightCoefficient = 0.1) {
+  public constructor (basePolygon: Polygon, height = 100) {
     super('bulding');
     this.base = new Polygon(basePolygon, { fill: 'white', stroke: '#AAA' });
     this.addChild(this.base);
-    this._heightCoefficient = heightCoefficient;
+    this._height = height;
     this._ceiling = this._generateCeiling();
     
     this._sides = this._generateSides();
@@ -24,8 +24,7 @@ export class Building extends SceneNode {
   }
 
   private _getTopPoint (pos: Vector) {
-    const diff = Vector.sub(pos, Engine.viewport.viewPoint);
-    return Vector.add(pos, diff.scale(this._heightCoefficient));
+    return Engine.viewport.getFake3dPoint(pos, this._height);
   }
 
   private _getTopPoints () {
@@ -68,22 +67,4 @@ export class Building extends SceneNode {
       return b.distanceTo(Engine.viewport.viewPoint) - a.distanceTo(Engine.viewport.viewPoint);
     });
   }
-
-  private _updateSides () {
-    for (let i = 0; i < this.base.points.length; ++i) {
-      const nextI = (i + 1) % this.base.points.length;
-      this._sides[i].points[0].position = this.base.points[i].position;
-      this._sides[i].points[1].position = this.base.points[nextI].position;
-      this._sides[i].points[2].position = this._ceiling.points[nextI].position;
-      this._sides[i].points[3].position = this._ceiling.points[i].position;
-    }
-
-  }
-
-  private _sortSides () {
-    this._sides = this._sides.sort((a, b) => {
-      return b.distanceTo(Engine.viewport.viewPoint) - a.distanceTo(Engine.viewport.viewPoint);
-    });
-  }
-
 }
